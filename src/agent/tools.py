@@ -54,7 +54,9 @@ def execute_tool(name, input):
 
     if name == "write_file":
         try:
-            os.makedirs(os.path.dirname(input["path"]), exist_ok=True)
+            parent = os.path.dirname(input["path"])
+            if parent:
+                os.makedirs(parent, exist_ok=True)
             with open(input["path"], "w") as f:
                 f.write(input["content"])
             return f"Successfully wrote to {input['path']}"

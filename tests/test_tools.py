@@ -49,6 +49,12 @@ class TestExecuteTool:
         assert "Successfully wrote" in result
         assert target.read_text() == "nested"
 
+    def test_write_file_no_parent_dir(self, monkeypatch, tmp_path):
+        monkeypatch.chdir(tmp_path)
+        result = execute_tool("write_file", {"path": "bare_file.txt", "content": "no parent"})
+        assert "Successfully wrote" in result
+        assert (tmp_path / "bare_file.txt").read_text() == "no parent"
+
     def test_write_file_overwrites_existing(self, tmp_path):
         target = tmp_path / "existing.txt"
         target.write_text("old content")
