@@ -1,4 +1,6 @@
+import json
 import anthropic
+from src.agent.loop import agent_loop
 
 
 def main():
@@ -11,17 +13,17 @@ def main():
     while True:
         user_input = input("\nYou: ")
         if user_input.strip().lower() == "quit":
+            print("\n" + "=" * 40)
+            print("CONVERSATION HISTORY")
+            print("=" * 40)
+            print(json.dumps(conversation_history, indent=2, default=str))
             break
 
         conversation_history.append({"role": "user", "content": user_input})
 
-        response = client.messages.create(
-            model="claude-sonnet-4-5-20250929",
-            max_tokens=1024,
-            messages=conversation_history,
-        )
+        response = agent_loop(client, conversation_history)
 
-        assistant_message = response.content[0].text
-        conversation_history.append({"role": "assistant", "content": assistant_message})
-
-        print(f"\nClaude: {assistant_message}")
+        # Print any text blocks from the final response
+        for block in response.content:
+            if hasattr(block, "text"):
+                print(f"\nClaude: {block.text}")
