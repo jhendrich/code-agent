@@ -37,6 +37,24 @@ class TestExecuteTool:
         assert "Error: Permission denied" in result
         test_file.chmod(0o644)  # restore for cleanup
 
+    def test_write_file_creates_file(self, tmp_path):
+        target = tmp_path / "output.txt"
+        result = execute_tool("write_file", {"path": str(target), "content": "hello"})
+        assert "Successfully wrote" in result
+        assert target.read_text() == "hello"
+
+    def test_write_file_creates_parent_dirs(self, tmp_path):
+        target = tmp_path / "sub" / "dir" / "output.txt"
+        result = execute_tool("write_file", {"path": str(target), "content": "nested"})
+        assert "Successfully wrote" in result
+        assert target.read_text() == "nested"
+
+    def test_write_file_overwrites_existing(self, tmp_path):
+        target = tmp_path / "existing.txt"
+        target.write_text("old content")
+        execute_tool("write_file", {"path": str(target), "content": "new content"})
+        assert target.read_text() == "new content"
+
     def test_unknown_tool(self):
         result = execute_tool("nonexistent_tool", {})
         assert "[error] Unknown tool" in result
