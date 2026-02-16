@@ -61,6 +61,27 @@ class TestExecuteTool:
         execute_tool("write_file", {"path": str(target), "content": "new content"})
         assert target.read_text() == "new content"
 
+    def test_run_command_approved(self):
+        result = execute_tool("run_command", {"command": "echo hello"}, input_func=lambda _: "y")
+        assert "hello" in result
+
+    def test_run_command_rejected(self):
+        result = execute_tool("run_command", {"command": "echo hello"}, input_func=lambda _: "n")
+        assert "rejected" in result.lower()
+
+    def test_run_command_captures_stderr(self):
+        result = execute_tool("run_command", {"command": "echo err >&2"}, input_func=lambda _: "y")
+        assert "err" in result
+        assert "STDERR" in result
+
+    def test_run_command_timeout(self):
+        result = execute_tool("run_command", {"command": "sleep 10", "timeout": 1}, input_func=lambda _: "y")
+        assert "timed out" in result.lower()
+
+    def test_run_command_nonzero_exit(self):
+        result = execute_tool("run_command", {"command": "exit 1"}, input_func=lambda _: "y")
+        assert "Exit code: 1" in result
+
     def test_unknown_tool(self):
         result = execute_tool("nonexistent_tool", {})
         assert "[error] Unknown tool" in result
